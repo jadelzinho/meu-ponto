@@ -97,7 +97,7 @@ h3{font-size:15px;margin:0 0 8px}
 </head>
 <body>
 <div class="wrap">
-  <header class="top"><h1>Meu Ponto</h1><span class="sync" id="sync">conectando…</span></header>
+  <header class="top"><h1>Meu Ponto<span id="hname" class="muted" style="font-weight:500"></span></h1><span class="sync" id="sync">conectando…</span></header>
   <main id="main"><div class="loading">Carregando…</div></main>
 </div>
 <nav class="tabs"><div class="in">
@@ -135,7 +135,7 @@ const TYPES={normal:'Dia normal',feriado:'Feriado',ferias:'Férias',abono:'Abona
 const fmtDate=s=>{const d=parseYmd(s);return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`};
 
 // ---------- state ----------
-const DEF={jornada:360,intervaloMin:15,entrada:'09:00',saida:'15:15',workdays:[1,2,3,4,5],presDays:[],saldoInicial:0};
+const DEF={nome:'',configured:false,jornada:360,intervaloMin:15,entrada:'',saida:'',workdays:[1,2,3,4,5],presDays:[],saldoInicial:0};
 const S={settings:{...DEF},days:{},store:null,tab:'hoje',month:null,rep:{preset:'mes',from:null,to:null}};
 let db=null,daysCol=null,profRef=null,downloads=null;
 const LSKEY='meu-ponto.v1';
@@ -218,7 +218,7 @@ function updateDay(date,fn){
 
 function useLocal(note){
   S.store='local';
-  try{const j=JSON.parse(localStorage.getItem(LSKEY)||'null');if(j){S.settings={...DEF,...j.settings};S.days=j.days||{}}}catch(e){}
+  try{const j=JSON.parse(localStorage.getItem(LSKEY)||'null');if(j){S.settings={...DEF,...j.settings};S.days=j.days||{};if(Object.keys(S.days).length&&!S.settings.configured){S.settings.configured=true;if(!S.settings.entrada)S.settings.entrada='09:00';if(!S.settings.saida)S.settings.saida='15:15'}}}catch(e){}
   setSync(note||'salvo neste aparelho');
   render();
 }
@@ -249,6 +249,9 @@ function route(first){
 function render(){
   if(!S.store)return;
   const m=$('#main');
+  const hn=$('#hname');if(hn)hn.textContent=S.settings.nome?' · '+S.settings.nome:'';
+  document.querySelector('nav.tabs').style.display=S.settings.configured?'':'none';
+  if(!S.settings.configured){if(!m.querySelector('#cfg'))m.innerHTML=viewCfg(true);return}
   if(S.tab==='hoje')m.innerHTML=viewHoje();
   else if(S.tab==='historico')m.innerHTML=viewHist();
   else if(S.tab==='relatorios')m.innerHTML=viewRep();
@@ -456,6 +459,8 @@ function csvFor(from,to){
   const lines=[['Data','Dia','Modalidade','Tipo','Marcações','Intervalo','Trabalhado','Previsto','Ajuste','Saldo','Observação'].join(';')];
   rows.forEach(r=>{const ps=(r.rec&&r.rec.punches)||[];lines.push([fmtDate(r.ds),DOWL[parseYmd(r.ds).getDay()],r.c.n?(r.mode==='home'?'Home':'Presencial'):'',TYPES[r.c.type],ps.join(' '),r.c.n>=3?fmtHM(r.c.brk):'',fmtHM(r.c.worked),fmtHM(r.c.expected),r.c.adjust?fmtS(r.c.adjust).replace('−','-'):'',fmtS(r.c.balance).replace('−','-'),(r.rec&&r.rec.note)||''].map(q).join(';'))});
   lines.push('');
+  if(S.settings.nome)lines.push(['Nome',q(S.settings.nome)].join(';'));
+  lines.push(['Horário oficial',`${S.settings.entrada}-${S.settings.saida}`].join(';'));
   lines.push(['Resumo',`${fmtDate(from)} a ${fmtDate(to)}`].join(';'));
   [['Dias com registro',s.dias],['Presencial',s.pres],['Home',s.home],['Horas trabalhadas',fmtHM(s.worked)],['Horas previstas',fmtHM(s.expected)],['Horas extras',fmtS(s.extra)],['Horas a menos',fmtS(s.deb).replace('−','-')],['Saldo do período',fmtS(s.saldo).replace('−','-')],['Banco no início',fmtS(s.bankStart).replace('−','-')],['Banco ao final',fmtS(s.bankEnd).replace('−','-')]].forEach(a=>lines.push(a.map(q).join(';')));
   return '﻿'+lines.join('\r\n');
@@ -464,7 +469,7 @@ function htmlReport(from,to){
   const {rows,s}=buildReport(from,to);
   const tr=rows.map(r=>{const ps=(r.rec&&r.rec.punches)||[];return `<tr><td>${fmtDate(r.ds)}</td><td>${DOW[parseYmd(r.ds).getDay()]}</td><td>${r.c.n?(r.mode==='home'?'Home':'Presencial'):''}</td><td>${r.c.type!=='normal'?TYPES[r.c.type]:''}</td><td>${esc(ps.join(' · '))}</td><td>${r.c.n>=3?fmtHM(r.c.brk):''}</td><td>${fmtHM(r.c.worked)}</td><td>${fmtS(r.c.balance)}</td><td>${esc((r.rec&&r.rec.note)||'')}</td></tr>`}).join('');
   return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório de ponto ${fmtDate(from)} a ${fmtDate(to)}</title><style>body{font:13px/1.4 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1c1c1a;margin:32px}h1{font-size:20px;margin:0 0 4px}p{color:#666;margin:0 0 18px}table{border-collapse:collapse;width:100%;margin-bottom:22px}td,th{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left;font-variant-numeric:tabular-nums}th{font-size:11px;text-transform:uppercase;color:#666}.sum td:last-child{text-align:right;font-weight:600}.sum{width:auto;min-width:320px}@media print{body{margin:12mm}}</style></head><body>
-  <h1>Relatório de ponto</h1><p>Período: ${fmtDate(from)} a ${fmtDate(to)} · Jornada ${fmtHM(S.settings.jornada)}/dia · Horário oficial ${esc(S.settings.entrada)}–${esc(S.settings.saida)} · Gerado em ${fmtDate(todayS())} ${nowHM()}</p>
+  <h1>Relatório de ponto${S.settings.nome?' — '+esc(S.settings.nome):''}</h1><p>Período: ${fmtDate(from)} a ${fmtDate(to)} · Jornada ${fmtHM(S.settings.jornada)}/dia · Horário oficial ${esc(S.settings.entrada)}–${esc(S.settings.saida)} · Gerado em ${fmtDate(todayS())} ${nowHM()}</p>
   <table class="sum"><tr><td>Dias com registro</td><td>${s.dias}</td></tr><tr><td>Presencial / Home</td><td>${s.pres} / ${s.home}</td></tr><tr><td>Horas trabalhadas</td><td>${fmtHM(s.worked)}</td></tr><tr><td>Horas previstas</td><td>${fmtHM(s.expected)}</td></tr><tr><td>Horas extras</td><td>${fmtS(s.extra)}</td></tr><tr><td>Horas a menos</td><td>${fmtS(s.deb)}</td></tr><tr><td>Saldo do período</td><td>${fmtS(s.saldo)}</td></tr><tr><td>Banco no início</td><td>${fmtS(s.bankStart)}</td></tr><tr><td>Banco ao final</td><td>${fmtS(s.bankEnd)}</td></tr></table>
   <table><tr><th>Data</th><th>Dia</th><th>Local</th><th>Tipo</th><th>Marcações</th><th>Intervalo</th><th>Trabalhado</th><th>Saldo</th><th>Obs.</th></tr>${tr}</table></body></html>`;
 }
@@ -489,22 +494,25 @@ async function saveFile(filename,data,mime){
 }
 
 // ---------- Ajustes ----------
-function viewCfg(){
+function viewCfg(setup){
   const st=S.settings;
   const days=(name,arr)=>`<div class="checks">${[1,2,3,4,5,6,0].map(i=>`<label><input type="checkbox" name="${name}" value="${i}" ${arr.includes(i)?'checked':''}>${DOW[i]}</label>`).join('')}</div>`;
-  return `<section class="card" id="cfg">
-    <h3>Jornada</h3>
+  const intro=setup?`<h2 style="font-size:22px;margin:0 0 4px">Bem-vindo(a)!</h2><p class="muted" style="margin:0 0 14px">Antes de começar, informe o seu horário oficial. Dá pra mudar depois em Ajustes.</p>`:'';
+  return `<section class="card" id="cfg">${intro}
+    <label class="f"><span>Seu nome (aparece nos relatórios)</span><input type="text" id="cNome" value="${esc(st.nome)}" placeholder="Opcional" autocomplete="name"></label>
+    <h3 class="mt">Horário oficial</h3>
     <div class="grid2">
-      <label class="f"><span>Horas por dia</span><input type="time" id="cJor" value="${fmtHM(st.jornada)}"></label>
+      <label class="f"><span>Entrada</span><input type="time" id="cEnt" value="${esc(st.entrada)}"></label>
+      <label class="f"><span>Saída</span><input type="time" id="cSai" value="${esc(st.saida)}"></label>
       <label class="f"><span>Intervalo mínimo (min)</span><input type="text" inputmode="numeric" id="cInt" value="${st.intervaloMin}"></label>
-      <label class="f"><span>Entrada oficial</span><input type="time" id="cEnt" value="${esc(st.entrada)}"></label>
-      <label class="f"><span>Saída oficial</span><input type="time" id="cSai" value="${esc(st.saida)}"></label>
+      <label class="f"><span>Horas por dia</span><input type="time" id="cJor" value="${setup&&!st.entrada?'':fmtHM(st.jornada)}"></label>
     </div>
-    <label class="f"><span>Dias de trabalho (contam ${fmtHM(st.jornada)} previstas)</span>${days('wd',st.workdays||[])}</label>
+    <p class="small muted" style="margin:0" id="cJorHint">As horas por dia são calculadas pela entrada, saída e intervalo — ajuste se for diferente.</p>
+    <label class="f"><span>Dias de trabalho (contam as horas por dia como previstas)</span>${days('wd',st.workdays||[])}</label>
     <label class="f"><span>Dias que normalmente são presenciais (o resto começa como Home — dá pra trocar no dia)</span>${days('pd',st.presDays||[])}</label>
     <h3 class="mt">Banco de horas</h3>
     <label class="f"><span>Saldo inicial (ex.: +3:30 ou -1:00)</span><input type="text" id="cIni" value="${st.saldoInicial?fmtS(st.saldoInicial).replace('−','-'):''}" placeholder="0:00"></label>
-    <button class="btn primary" data-act="savecfg" style="width:100%">Salvar ajustes</button>
+    <button class="btn primary" data-act="savecfg" style="width:100%">${setup?'Começar':'Salvar ajustes'}</button>
   </section>
   <section class="card">
     <h3>Backup</h3>
@@ -559,19 +567,22 @@ document.addEventListener('click',e=>{
   else if(a==='dlhtml'){saveFile(`relatorio-ponto_${S.rep.from}_a_${S.rep.to}.html`,htmlReport(S.rep.from,S.rep.to),'text/html')}
   else if(a==='copy'){
     const {s}=buildReport(S.rep.from,S.rep.to);
-    const txt=`Ponto ${fmtDate(S.rep.from)} a ${fmtDate(S.rep.to)}\nDias com registro: ${s.dias} (${s.pres} presencial, ${s.home} home)\nTrabalhadas: ${fmtHM(s.worked)} de ${fmtHM(s.expected)} previstas\nExtras: ${fmtS(s.extra)} · A menos: ${fmtS(s.deb)}\nSaldo do período: ${fmtS(s.saldo)}\nBanco de horas ao final: ${fmtS(s.bankEnd)}`;
+    const txt=`${S.settings.nome?S.settings.nome+' — ':''}Ponto ${fmtDate(S.rep.from)} a ${fmtDate(S.rep.to)}\nDias com registro: ${s.dias} (${s.pres} presencial, ${s.home} home)\nTrabalhadas: ${fmtHM(s.worked)} de ${fmtHM(s.expected)} previstas\nExtras: ${fmtS(s.extra)} · A menos: ${fmtS(s.deb)}\nSaldo do período: ${fmtS(s.saldo)}\nBanco de horas ao final: ${fmtS(s.bankEnd)}`;
     navigator.clipboard.writeText(txt).then(()=>toast('Resumo copiado'),()=>toast('Não foi possível copiar'));
   }
   else if(a==='savecfg'){
     const jor=toMin($('#cJor').value),iv=parseInt($('#cInt').value,10),ini=parseSigned($('#cIni').value);
+    if(!$('#cEnt').value||!$('#cSai').value){toast('Informe a entrada e a saída oficiais');return}
     if(!jor){toast('Informe as horas por dia');return}
     if(isNaN(iv)||iv<0){toast('Intervalo mínimo inválido');return}
     if(ini===null){toast('Saldo inicial inválido');return}
     const get=n=>[...document.querySelectorAll(`input[name=${n}]:checked`)].map(x=>+x.value);
-    S.settings={...S.settings,jornada:jor,intervaloMin:iv,entrada:$('#cEnt').value||'09:00',saida:$('#cSai').value||'15:15',workdays:get('wd'),presDays:get('pd'),saldoInicial:ini};
-    persistSettings();document.activeElement&&document.activeElement.blur();$('#main').innerHTML=viewCfg();toast('Ajustes salvos');
+    const first=!S.settings.configured;
+    S.settings={...S.settings,nome:$('#cNome').value.trim(),configured:true,jornada:jor,intervaloMin:iv,entrada:$('#cEnt').value,saida:$('#cSai').value,workdays:get('wd'),presDays:get('pd'),saldoInicial:ini};
+    persistSettings();document.activeElement&&document.activeElement.blur();
+    if(first){location.hash='#hoje';S.tab='hoje';route();render();toast('Tudo pronto! Bom trabalho.')}else{$('#main').innerHTML=viewCfg();render();toast('Ajustes salvos')}
   }
-  else if(a==='backup'){saveFile(`backup-ponto_${todayS()}.json`,JSON.stringify({app:'meu-ponto',v:1,settings:S.settings,days:S.days},null,1),'application/json')}
+  else if(a==='backup'){saveFile(`backup-ponto${S.settings.nome?'_'+S.settings.nome.normalize('NFD').replace(/[^\w]+/g,'-').toLowerCase():''}_${todayS()}.json`,JSON.stringify({app:'meu-ponto',v:1,settings:S.settings,days:S.days},null,1),'application/json')}
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='rFrom'||e.target.id==='rTo'){
@@ -582,10 +593,19 @@ document.addEventListener('change',e=>{
     const file=e.target.files[0];if(!file)return;
     file.text().then(async txt=>{
       const j=JSON.parse(txt);if(!j||j.app!=='meu-ponto'||!j.days)throw new Error('arquivo inválido');
-      S.settings={...DEF,...j.settings};persistSettings();
+      S.settings={...DEF,...j.settings,configured:true};if(!S.settings.entrada)S.settings.entrada='09:00';if(!S.settings.saida)S.settings.saida='15:15';persistSettings();
       for(const d of Object.keys(j.days)){S.days[d]=j.days[d];persistDay(d)}
       render();toast(`Backup restaurado (${Object.keys(j.days).length} dias)`);
     }).catch(err=>toast('Não foi possível restaurar: '+err.message));
+  }
+});
+let jorTouched=false;
+document.addEventListener('input',e=>{
+  const id=e.target.id;
+  if(id==='cJor'){jorTouched=true;return}
+  if(id==='cEnt'||id==='cSai'||id==='cInt'){
+    const en=toMin($('#cEnt').value),sa=toMin($('#cSai').value),iv=parseInt($('#cInt').value,10)||0;
+    if(en!=null&&sa!=null&&sa>en&&!jorTouched){const j=sa-en-iv;if(j>0)$('#cJor').value=fmtHM(j)}
   }
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&edit){edit=null;renderModal()}});
