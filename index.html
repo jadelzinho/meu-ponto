@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f4f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141513" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Meu Ponto</title>
+<style>
+:root{--bg:#f5f4f0;--card:#fff;--ink:#1c1c1a;--muted:#6d6c67;--line:#e4e1d9;--accent:#2f5d50;--accent-ink:#fff;--pos:#1d7a4b;--neg:#b23f2a;--warn:#9a6400;--chip:#eeebe4;--home:#3c5a9a;--pres:#8a5a1f;--shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.04)}
+@media (prefers-color-scheme:dark){:root{--bg:#141513;--card:#1d1e1c;--ink:#ecebe6;--muted:#9b9a94;--line:#2f302d;--accent:#73b29c;--accent-ink:#0e1a15;--pos:#6cc89b;--neg:#ee8b75;--warn:#e2b14f;--chip:#2a2b28;--home:#93ace8;--pres:#e3b27c;--shadow:none}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:640px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))}
+header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+header.top h1{font-size:18px;margin:0;letter-spacing:-.01em}
+.sync{font-size:12px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.num{font-variant-numeric:tabular-nums}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.warn{color:var(--warn)}
+.clock{font-size:52px;font-weight:650;letter-spacing:-.02em;line-height:1;margin:6px 0 2px}
+.datebig{font-size:15px;color:var(--muted)}
+.datebig::first-letter{text-transform:uppercase}
+.seg{display:inline-flex;background:var(--chip);border-radius:999px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:7px 14px;border-radius:999px;cursor:pointer;font-weight:550;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg button.on[data-mode=home]{color:var(--home)}.seg button.on[data-mode=presencial]{color:var(--pres)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:550}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.big{width:100%;padding:18px;font-size:18px;border-radius:14px}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--accent);padding:8px 6px}
+.btn.danger{color:var(--neg)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--chip);border-radius:12px;padding:10px 12px}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font-size:20px;font-weight:650}
+.punches{list-style:none;margin:10px 0 0;padding:0}
+.punches li{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.punches li:first-child{border-top:0}
+.chip{display:inline-block;font-size:11px;font-weight:650;padding:2px 8px;border-radius:999px;background:var(--chip);text-transform:uppercase;letter-spacing:.03em}
+.chip.home{color:var(--home)}.chip.presencial{color:var(--pres)}
+.bank{font-size:34px;font-weight:700;letter-spacing:-.02em}
+.warnbox{background:color-mix(in srgb,var(--warn) 12%,transparent);color:var(--warn);border-radius:10px;padding:8px 10px;font-size:13px;margin-top:10px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs .in{display:flex;max-width:640px;width:100%}
+nav.tabs a{flex:1;text-align:center;padding:12px 4px 14px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600}
+nav.tabs a.on{color:var(--accent)}
+nav.tabs a svg{display:block;margin:0 auto 3px;width:22px;height:22px}
+.daylist .d{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;padding:10px 4px;border-top:1px solid var(--line);cursor:pointer}
+.daylist .d:first-child{border-top:0}
+.daylist .d.off{opacity:.5}
+.daylist .d .dd{font-weight:650;line-height:1.1}
+.daylist .d .dd small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.daylist .d .sal{text-align:right;font-weight:650}
+.daylist .d .sal small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.monthnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.monthnav h2{font-size:17px;margin:0;text-transform:capitalize}
+label.f{display:block;margin:10px 0}
+label.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+input[type=time],input[type=date],input[type=text],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+textarea{min-height:64px;resize:vertical}
+.checks{display:flex;flex-wrap:wrap;gap:6px}
+.checks label{display:inline-flex;align-items:center;gap:4px;background:var(--chip);border-radius:999px;padding:5px 10px;font-size:13px;cursor:pointer}
+.checks input{margin:0}
+table.rep{width:100%;border-collapse:collapse;font-size:13px}
+table.rep th,table.rep td{padding:7px 6px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+table.rep th{font-size:12px;color:var(--muted);font-weight:600;border-top:0}
+table.rep td.r,table.rep th.r{text-align:right}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sum td{padding:6px 0;border-top:1px solid var(--line)}
+.sum td:last-child{text-align:right;font-weight:650}
+.sum tr:first-child td{border-top:0}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.presets button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+.presets button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.modal .sheet{background:var(--card);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+@media (min-width:700px){.modal{align-items:center}.modal .sheet{border-radius:18px}}
+.prow{display:grid;grid-template-columns:120px 1fr 40px;gap:8px;align-items:center;margin-bottom:8px}
+.prow .lab{font-size:13px;color:var(--muted)}
+.x{border:0;background:var(--chip);border-radius:10px;height:40px;cursor:pointer;font-size:18px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px;font-size:14px;display:flex;gap:12px;align-items:center;z-index:30;box-shadow:0 6px 20px rgba(0,0,0,.2);max-width:92vw}
+.toast button{background:transparent;border:0;color:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.loading{text-align:center;padding:60px 0;color:var(--muted)}
+h3{font-size:15px;margin:0 0 8px}
+.mt{margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><h1>Meu Ponto</h1><span class="sync" id="sync">conectando…</span></header>
+  <main id="main"><div class="loading">Carregando…</div></main>
+</div>
+<nav class="tabs"><div class="in">
+  <a href="#hoje" data-tab="hoje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Hoje</a>
+  <a href="#historico" data-tab="historico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Histórico</a>
+  <a href="#relatorios" data-tab="relatorios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Relatórios</a>
+  <a href="#ajustes" data-tab="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</a>
+</div></nav>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+(function(){
+"use strict";
+// ---------- helpers ----------
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseYmd=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(s,n)=>{const d=parseYmd(s);d.setDate(d.getDate()+n);return ymd(d)};
+const toMin=t=>{if(!t||!/^\d{1,2}:\d{2}$/.test(t))return null;const [h,m]=t.split(':').map(Number);return h*60+m};
+const fromMin=m=>`${pad(Math.floor(m/60)%24)}:${pad(Math.round(m)%60)}`;
+const fmtHM=m=>{m=Math.round(Math.abs(m));return `${pad(Math.floor(m/60))}:${pad(m%60)}`};
+const fmtS=m=>{m=Math.round(m);return (m>0?'+':m<0?'−':'')+fmtHM(m)};
+const cls=m=>Math.round(m)>0?'pos':Math.round(m)<0?'neg':'';
+const parseSigned=s=>{s=String(s||'').trim().replace('−','-');if(!s)return 0;const neg=s.startsWith('-');s=s.replace(/^[+-]/,'');let h,m=0;if(s.includes(':')){[h,m]=s.split(':').map(Number)}else{h=Number(s.replace(',','.'));m=0;if(!Number.isInteger(h)){m=Math.round((h%1)*60);h=Math.trunc(h)}}if(isNaN(h)||isNaN(m))return null;const v=h*60+m;return neg?-v:v};
+const nowMinF=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()+d.getSeconds()/60};
+const nowHM=()=>{const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
+const todayS=()=>ymd(new Date());
+const DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const DOWL=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+const MON=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const TYPES={normal:'Dia normal',feriado:'Feriado',ferias:'Férias',abono:'Abonado / atestado',folga:'Folga (desconta do banco)'};
+const fmtDate=s=>{const d=parseYmd(s);return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`};
+
+// ---------- state ----------
+const DEF={jornada:360,intervaloMin:15,entrada:'09:00',saida:'15:15',workdays:[1,2,3,4,5],presDays:[],saldoInicial:0};
+const S={settings:{...DEF},days:{},store:null,tab:'hoje',month:null,rep:{preset:'mes',from:null,to:null}};
+let db=null,daysCol=null,profRef=null,downloads=null;
+const LSKEY='meu-ponto.v1';
+
+function modeOf(date){const r=S.days[date];if(r&&r.mode)return r.mode;const dow=parseYmd(date).getDay();return (S.settings.presDays||[]).includes(dow)?'presencial':'home'}
+function isEmpty(r){return !r||(!(r.punches||[]).length&&(!r.type||r.type==='normal')&&!r.adjust&&!r.note&&!r.mode)}
+
+function calc(date,rec){
+  const st=S.settings,dow=parseYmd(date).getDay(),type=(rec&&rec.type)||'normal';
+  const raw=(rec&&rec.punches)||[];
+  const p=raw.map(toMin).filter(x=>x!=null);
+  const isToday=date===todayS();
+  let worked=0,closed=0,brk=0,open=false,order=true;
+  for(let i=1;i<p.length;i++)if(p[i]<p[i-1])order=false;
+  for(let i=0;i<p.length;i+=2){
+    const a=p[i];let b=p[i+1];
+    if(i>0)brk+=Math.max(0,a-p[i-1]);
+    if(b==null){if(isToday&&date<=todayS()){b=Math.max(a,nowMinF());open=true}else b=a}
+    else closed+=Math.max(0,b-a);
+    worked+=Math.max(0,b-a);
+  }
+  const workday=(st.workdays||[]).includes(dow);
+  let expected=0;
+  if(type==='normal'&&workday)expected=st.jornada;
+  if(type==='folga')expected=st.jornada;
+  const adjust=(rec&&rec.adjust)||0;
+  const has=!!rec&&(p.length>0||type!=='normal'||!!adjust);
+  const balance=has?worked-expected+adjust:0;
+  const warns=[];
+  if(!order)warns.push('Horários fora de ordem');
+  if(p.length%2===1&&!open)warns.push('Falta registrar uma saída');
+  if(p.length>=4&&brk<st.intervaloMin)warns.push(`Intervalo menor que ${st.intervaloMin} min`);
+  if(p.length===2&&closed>4*60)warns.push('Sem intervalo registrado');
+  const pending=isToday&&p.length>0&&(open||(p.length===2&&closed<expected));
+  const agg=pending?0:balance;
+  return {worked,closed,brk,open,expected,balance,agg,pending,adjust,has,type,workday,warns,n:p.length,p};
+}
+function bankAt(dateIncl,excludeDate){
+  let b=S.settings.saldoInicial||0;
+  for(const d in S.days){if(d<=dateIncl&&d!==excludeDate){b+=calc(d,S.days[d]).agg}}
+  return b;
+}
+function punchLabel(i,n){
+  if(i===0)return 'Entrada';
+  if(i===1)return n>2?'Saída p/ intervalo':'Saída';
+  if(i===2)return 'Volta do intervalo';
+  if(i===3)return 'Saída';
+  return i%2===0?'Entrada extra':'Saída extra';
+}
+
+// ---------- persistence ----------
+const queues={};
+function setSync(t){const el=$('#sync');if(el)el.textContent=t}
+function saveLocal(){try{localStorage.setItem(LSKEY,JSON.stringify({settings:S.settings,days:S.days}))}catch(e){}}
+function persistDay(date){
+  const rec=S.days[date]?JSON.parse(JSON.stringify(S.days[date])):null;
+  if(S.store!=='db'){saveLocal();return}
+  setSync('salvando…');
+  queues[date]=(queues[date]||Promise.resolve()).then(async()=>{
+    const ref=daysCol.doc(date);
+    if(isEmpty(rec))await ref.delete();else await ref.set(rec);
+    setSync('salvo na nuvem');
+  }).catch(e=>{setSync('erro ao salvar');toast('Não foi possível salvar: '+((e&&e.message)||(e&&e.code)||e))});
+}
+let setQ=Promise.resolve();
+function persistSettings(){
+  if(S.store!=='db'){saveLocal();return}
+  const s=JSON.parse(JSON.stringify(S.settings));
+  setSync('salvando…');
+  setQ=setQ.then(()=>profRef.set({settings:s})).then(()=>setSync('salvo na nuvem')).catch(e=>{setSync('erro ao salvar');toast('Erro ao salvar ajustes: '+((e&&e.message)||e))});
+}
+function updateDay(date,fn){
+  const cur=S.days[date]?JSON.parse(JSON.stringify(S.days[date])):{date,punches:[]};
+  if(!cur.punches)cur.punches=[];
+  fn(cur);
+  cur.date=date;
+  if(isEmpty(cur))delete S.days[date];else S.days[date]=cur;
+  persistDay(date);render();
+}
+
+function useLocal(note){
+  S.store='local';
+  try{const j=JSON.parse(localStorage.getItem(LSKEY)||'null');if(j){S.settings={...DEF,...j.settings};S.days=j.days||{}}}catch(e){}
+  setSync(note||'salvo neste aparelho');
+  render();
+}
+async function init(){
+  window.addEventListener('hashchange',route);route(true);
+  if(!window.claude||typeof window.claude.use!=='function'){useLocal();return}
+  try{
+    const [d,u,dl]=await Promise.all([claude.use('db'),claude.use('user'),claude.use('downloads').catch(()=>null)]);
+    downloads=dl;
+    const uid=u?await u.id():null;
+    if(!d||!uid){useLocal();return}
+    db=d;profRef=db.doc('data/users/'+uid+'/profile');daysCol=profRef.collection('days');
+    let gotDays=false,gotProf=false;
+    const ready=()=>{if(gotDays&&gotProf&&S.store!=='db'){S.store='db';setSync('salvo na nuvem')}if(S.store==='db')render()};
+    profRef.onSnapshot(s=>{const v=s.exists&&s.data()&&s.data().settings;S.settings={...DEF,...(v||{})};gotProf=true;ready()},e=>{if(!S.store)useLocal('sem conexão — salvo neste aparelho')});
+    daysCol.onSnapshot(snap=>{const o={};snap.docs.forEach(x=>{o[x.id]=x.data()});S.days=o;gotDays=true;ready()},e=>{if(!S.store)useLocal('sem conexão — salvo neste aparelho');else setSync('conexão perdida — recarregue')});
+    setTimeout(()=>{if(!S.store)useLocal('sem conexão — salvo neste aparelho')},12000);
+  }catch(e){useLocal()}
+}
+
+// ---------- routing ----------
+function route(first){
+  const h=(location.hash||'#hoje').slice(1);
+  S.tab=['hoje','historico','relatorios','ajustes'].includes(h)?h:'hoje';
+  document.querySelectorAll('nav.tabs a').forEach(a=>a.classList.toggle('on',a.dataset.tab===S.tab));
+  if(first!==true)render();
+}
+function render(){
+  if(!S.store)return;
+  const m=$('#main');
+  if(S.tab==='hoje')m.innerHTML=viewHoje();
+  else if(S.tab==='historico')m.innerHTML=viewHist();
+  else if(S.tab==='relatorios')m.innerHTML=viewRep();
+  else {if(!m.contains(document.activeElement)||!m.querySelector('#cfg'))m.innerHTML=viewCfg()}
+}
+
+// ---------- Hoje ----------
+function viewHoje(){
+  const t=todayS(),rec=S.days[t],c=calc(t,rec),mode=modeOf(t),d=new Date();
+  const n=c.n;
+  let main,second='';
+  if(n===0)main='Registrar entrada';
+  else if(n===1){main='Saída para intervalo';second=`<button class="btn ghost" data-act="punch">Encerrar o dia sem intervalo</button>`}
+  else if(n===2)main='Volta do intervalo';
+  else if(n===3)main='Registrar saída';
+  else main=n%2===0?'Nova entrada (extra)':'Registrar saída';
+  const punches=(rec&&rec.punches)||[];
+  const list=punches.length?`<ul class="punches">${punches.map((p,i)=>`<li><span>${punchLabel(i,punches.length)}</span><span class="row"><b class="num">${esc(p)}</b><button class="btn sm" data-act="editday" data-date="${t}">editar</button></span></li>`).join('')}</ul>`:`<p class="muted small" style="margin:10px 0 0">Nenhuma marcação hoje. Horário oficial ${esc(S.settings.entrada)}–${esc(S.settings.saida)}.</p>`;
+  const typeNote=c.type!=='normal'?`<div class="warnbox">Hoje está marcado como <b>${TYPES[c.type]}</b>.</div>`:'';
+  const warns=c.warns.length?`<div class="warnbox">${c.warns.map(esc).join(' · ')}</div>`:'';
+  const bankY=bankAt(addDays(t,-1));
+  const mStart=t.slice(0,8)+'01';let mW=0,mB=0;
+  for(const k in S.days){if(k>=mStart&&k<=t){const cc=calc(k,S.days[k]);mW+=cc.worked;mB+=cc.agg}}
+  return `
+  <section class="card">
+    <div class="datebig">${DOWL[d.getDay()]}, ${d.getDate()} de ${MON[d.getMonth()]}</div>
+    <div class="clock num" id="clock">${pad(d.getHours())}:${pad(d.getMinutes())}<span class="muted" style="font-size:24px">:${pad(d.getSeconds())}</span></div>
+    <div class="row mt">
+      <span class="muted small">Onde você está hoje?</span>
+      <div class="seg" role="radiogroup" aria-label="Modalidade">
+        <button data-act="mode" data-mode="presencial" data-date="${t}" class="${mode==='presencial'?'on':''}">Presencial</button>
+        <button data-act="mode" data-mode="home" data-date="${t}" class="${mode==='home'?'on':''}">Home</button>
+      </div>
+    </div>
+    <div class="mt"><button class="btn primary big" data-act="punch">${main}</button></div>
+    <div style="text-align:center">${second}</div>
+    ${list}${typeNote}${warns}
+  </section>
+  <section class="card">
+    <div class="grid2">
+      <div class="stat"><div class="k">Trabalhado hoje</div><div class="v num" id="tWorked">${fmtHM(c.worked)}</div></div>
+      <div class="stat"><div class="k">Intervalo</div><div class="v num">${n>=3?fmtHM(c.brk):n===2?'<span class="small muted">em andamento</span>':'—'}</div></div>
+      <div class="stat"><div class="k">Saída prevista (${fmtHM(S.settings.jornada)})</div><div class="v num" id="tFore">${forecastText(c)}</div></div>
+      <div class="stat"><div class="k">Saldo do dia${c.pending?' (parcial)':''}</div><div class="v num ${cls(c.balance)}" id="tBal">${c.has?fmtS(c.balance):'—'}</div></div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="muted small">Banco de horas (até ontem)</div>
+    <div class="bank num ${cls(bankY)}">${fmtS(bankY)}</div>
+    <div class="small muted num" id="tBank">Com hoje: <b class="${cls(bankY+c.balance)}">${fmtS(bankY+c.balance)}</b>${c.pending?' (parcial, dia em andamento)':''}</div>
+    <div class="small muted num" style="margin-top:6px">${MON[d.getMonth()]}: ${fmtHM(mW)} trabalhadas · saldo <b class="${cls(mB)}">${fmtS(mB)}</b></div>
+  </section>`;
+}
+function forecastText(c){
+  const st=S.settings,p=c.p;
+  if(c.n===0)return `<span class="small muted">entre p/ calcular</span>`;
+  if(c.n%2===0){
+    if(c.n===2&&c.closed<st.jornada)return `<span class="small muted">faltam ${fmtHM(st.jornada-c.closed)} após a volta</span>`;
+    return `<span class="small muted">dia encerrado</span>`;
+  }
+  const rem=st.jornada-c.closed;
+  if(rem<=0)return `<span class="pos">já cumprida</span>`;
+  let t=p[p.length-1]+rem;
+  if(c.n===1)t+=st.intervaloMin;
+  return fromMin(t)+(c.n===1?`<div class="small muted" style="font-size:11px;font-weight:500">com ${st.intervaloMin} min de intervalo</div>`:'');
+}
+function tick(){
+  if(S.tab!=='hoje'||!S.store)return;
+  const d=new Date();const el=$('#clock');if(!el)return;
+  el.innerHTML=`${pad(d.getHours())}:${pad(d.getMinutes())}<span class="muted" style="font-size:24px">:${pad(d.getSeconds())}</span>`;
+  if(d.getSeconds()%20===0&&!document.querySelector('.modal')){
+    if(ymd(d)!==lastDay){lastDay=ymd(d);render();return}
+    const t=todayS(),c=calc(t,S.days[t]);
+    if(c.open)render();
+  }
+}
+let lastDay=todayS();
+
+// ---------- Histórico ----------
+function viewHist(){
+  if(!S.month)S.month=todayS().slice(0,7);
+  const [y,m]=S.month.split('-').map(Number);
+  const first=`${S.month}-01`,dim=new Date(y,m,0).getDate(),t=todayS();
+  let rows=[],mW=0,mB=0,pres=0,home=0;
+  for(let i=dim;i>=1;i--){
+    const ds=`${S.month}-${pad(i)}`;
+    const rec=S.days[ds];
+    if(ds>t&&!rec)continue;
+    const c=calc(ds,rec),dow=parseYmd(ds).getDay(),mode=modeOf(ds);
+    mW+=c.worked;mB+=c.agg;
+    if(c.n>0){mode==='presencial'?pres++:home++}
+    const ps=(rec&&rec.punches)||[];
+    let pairs=[];for(let k=0;k<ps.length;k+=2)pairs.push(ps[k]+'–'+(ps[k+1]||'…'));
+    let desc=pairs.join(' · ');
+    if(c.type!=='normal')desc=TYPES[c.type]+(desc?' · '+desc:'');
+    if(!desc)desc=c.workday?'<span class="muted">sem registro</span>':'<span class="muted">fim de semana</span>';
+    const chip=(c.n>0||(rec&&rec.mode))?`<span class="chip ${mode}">${mode==='home'?'home':'presencial'}</span> `:'';
+    rows.push(`<div class="d ${!c.has&&!c.workday?'off':''}" data-act="editday" data-date="${ds}">
+      <div class="dd num">${pad(i)}<small>${DOW[dow]}</small></div>
+      <div class="small">${chip}<span class="num">${desc}</span>${c.warns.length?`<div class="warn" style="font-size:12px">${esc(c.warns.join(' · '))}</div>`:''}${rec&&rec.note?`<div class="muted" style="font-size:12px">${esc(rec.note)}</div>`:''}</div>
+      <div class="sal num ${cls(c.agg)}">${c.pending?'<span class="muted" style="font-size:12px">em andamento</span>':c.has?fmtS(c.balance):''}<small>${c.n?fmtHM(c.worked):''}</small></div>
+    </div>`);
+  }
+  const prev=ymd(new Date(y,m-2,1)).slice(0,7),next=ymd(new Date(y,m,1)).slice(0,7);
+  return `<section class="card">
+    <div class="monthnav"><button class="btn sm" data-act="month" data-m="${prev}" aria-label="Mês anterior">‹</button><h2>${MON[m-1]} ${y}</h2><button class="btn sm" data-act="month" data-m="${next}" aria-label="Próximo mês">›</button></div>
+    <div class="small muted num">${fmtHM(mW)} trabalhadas · saldo <b class="${cls(mB)}">${fmtS(mB)}</b> · ${pres} presencial · ${home} home</div>
+  </section>
+  <section class="card"><div class="daylist">${rows.join('')||'<p class="muted">Nada neste mês.</p>'}</div>
+  <p class="small muted" style="margin:10px 0 0">Toque em um dia para incluir ou corrigir marcações, mudar a modalidade ou marcar feriado/férias/folga.</p></section>`;
+}
+
+// ---------- Editor de dia ----------
+let edit=null;
+function openDay(date){
+  const r=S.days[date];
+  edit={date,mode:modeOf(date),type:(r&&r.type)||'normal',punches:[...((r&&r.punches)||[])],note:(r&&r.note)||'',adjust:(r&&r.adjust)||0,confirmClear:false};
+  renderModal();
+}
+function renderModal(){
+  const root=$('#modalRoot');
+  if(!edit){root.innerHTML='';return}
+  const d=parseYmd(edit.date);
+  const ps=edit.punches.map((p,i)=>`<div class="prow"><span class="lab">${punchLabel(i,edit.punches.length)}</span><input type="time" value="${esc(p)}" data-pi="${i}"><button class="x" data-act="rmp" data-i="${i}" aria-label="Remover">×</button></div>`).join('');
+  root.innerHTML=`<div class="modal" data-act="closebg"><div class="sheet" role="dialog" aria-modal="true">
+    <div class="row"><h3 style="margin:0">${DOWL[d.getDay()].replace(/^./,x=>x.toUpperCase())}, ${fmtDate(edit.date)}</h3><button class="btn ghost" data-act="close">Fechar</button></div>
+    <div class="row mt"><span class="muted small">Modalidade</span><div class="seg">
+      <button data-act="emode" data-mode="presencial" class="${edit.mode==='presencial'?'on':''}">Presencial</button>
+      <button data-act="emode" data-mode="home" class="${edit.mode==='home'?'on':''}">Home</button></div></div>
+    <label class="f"><span>Tipo do dia</span><select id="eType">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${edit.type===k?'selected':''}>${v}</option>`).join('')}</select></label>
+    <div class="f"><span class="muted small" style="display:block;margin-bottom:6px">Marcações</span>${ps||'<p class="small muted" style="margin:0 0 8px">Sem marcações.</p>'}
+      <div class="row"><button class="btn sm" data-act="addp">+ Marcação</button>${edit.punches.length===0?`<button class="btn sm" data-act="fillstd">Preencher horário oficial</button>`:''}</div></div>
+    <label class="f"><span>Ajuste manual no banco (ex.: -2:00 para horas pagas/compensadas, +0:30)</span><input type="text" id="eAdj" inputmode="text" value="${edit.adjust?fmtS(edit.adjust).replace('−','-'):''}" placeholder="0:00"></label>
+    <label class="f"><span>Observação</span><textarea id="eNote">${esc(edit.note)}</textarea></label>
+    <div class="row mt"><button class="btn danger" data-act="clear">${edit.confirmClear?'Toque de novo p/ apagar':'Apagar dia'}</button><button class="btn primary" data-act="saveday">Salvar</button></div>
+  </div></div>`;
+}
+function readModal(){
+  document.querySelectorAll('#modalRoot input[data-pi]').forEach(el=>{edit.punches[+el.dataset.pi]=el.value});
+  const t=$('#eType');if(t)edit.type=t.value;
+  const n=$('#eNote');if(n)edit.note=n.value;
+}
+
+// ---------- Relatórios ----------
+function presetRange(p){
+  const t=todayS(),d=parseYmd(t);
+  if(p==='mes')return [t.slice(0,8)+'01',t];
+  if(p==='mesant'){const a=new Date(d.getFullYear(),d.getMonth()-1,1),b=new Date(d.getFullYear(),d.getMonth(),0);return [ymd(a),ymd(b)]}
+  if(p==='semana'){const dow=(d.getDay()+6)%7;return [addDays(t,-dow),t]}
+  if(p==='ano')return [t.slice(0,4)+'-01-01',t];
+  return [S.rep.from||t.slice(0,8)+'01',S.rep.to||t];
+}
+function buildReport(from,to){
+  const rows=[];let s={dias:0,pres:0,home:0,worked:0,expected:0,extra:0,deb:0,saldo:0,semReg:0,adj:0};
+  const t=todayS();
+  for(let ds=from;ds<=to;ds=addDays(ds,1)){
+    const rec=S.days[ds],c=calc(ds,rec),mode=modeOf(ds);
+    if(c.has&&!c.pending){s.dias++;s.worked+=c.worked;s.expected+=c.expected;s.saldo+=c.balance;s.adj+=c.adjust;if(c.balance>0)s.extra+=c.balance;else s.deb+=c.balance}
+    if(c.n>0){mode==='presencial'?s.pres++:s.home++}
+    if(!c.has&&c.workday&&ds<t)s.semReg++;
+    if(c.has||(rec&&rec.note))rows.push({ds,rec,c,mode});
+    if(rows.length>4000)break;
+  }
+  s.bankEnd=bankAt(to);
+  s.bankStart=bankAt(addDays(from,-1));
+  return {rows,s};
+}
+function viewRep(){
+  const [from,to]=presetRange(S.rep.preset);
+  S.rep.from=from;S.rep.to=to;
+  const {rows,s}=buildReport(from,to);
+  const pb=(k,l)=>`<button data-act="preset" data-p="${k}" class="${S.rep.preset===k?'on':''}">${l}</button>`;
+  return `<section class="card">
+    <div class="presets">${pb('semana','Esta semana')}${pb('mes','Este mês')}${pb('mesant','Mês passado')}${pb('ano','Este ano')}${pb('custom','Personalizado')}</div>
+    <div class="grid2"><label class="f" style="margin:0"><span>De</span><input type="date" id="rFrom" value="${from}"></label><label class="f" style="margin:0"><span>Até</span><input type="date" id="rTo" value="${to}"></label></div>
+  </section>
+  <section class="card">
+    <h3>Resumo · ${fmtDate(from)} a ${fmtDate(to)}</h3>
+    <table class="sum num" style="width:100%;border-collapse:collapse">
+      <tr><td>Dias com registro</td><td>${s.dias}</td></tr>
+      <tr><td>Presencial / Home</td><td>${s.pres} / ${s.home}</td></tr>
+      <tr><td>Horas trabalhadas</td><td>${fmtHM(s.worked)}</td></tr>
+      <tr><td>Horas previstas</td><td>${fmtHM(s.expected)}</td></tr>
+      <tr><td>Horas extras</td><td class="pos">${fmtS(s.extra)}</td></tr>
+      <tr><td>Horas a menos</td><td class="neg">${fmtS(s.deb)}</td></tr>
+      <tr><td>Saldo do período</td><td class="${cls(s.saldo)}">${fmtS(s.saldo)}</td></tr>
+      <tr><td>Banco no início</td><td class="${cls(s.bankStart)}">${fmtS(s.bankStart)}</td></tr>
+      <tr><td>Banco ao final</td><td class="${cls(s.bankEnd)}">${fmtS(s.bankEnd)}</td></tr>
+    </table>
+    ${s.semReg?`<div class="warnbox">${s.semReg} dia(s) útil(eis) sem registro no período — não entram no cálculo. Marque como feriado/férias/folga no Histórico se for o caso.</div>`:''}
+    <div class="row mt" style="flex-wrap:wrap;justify-content:flex-start">
+      <button class="btn sm" data-act="dlcsv">Baixar planilha (CSV)</button>
+      <button class="btn sm" data-act="dlhtml">Baixar relatório</button>
+      <button class="btn sm" data-act="copy">Copiar resumo</button>
+    </div>
+  </section>
+  <section class="card"><h3>Dia a dia</h3><div class="scroll"><table class="rep num">
+    <tr><th>Data</th><th>Local</th><th>Marcações</th><th class="r">Trab.</th><th class="r">Saldo</th></tr>
+    ${rows.map(r=>{const ps=(r.rec&&r.rec.punches)||[];let pr=[];for(let k=0;k<ps.length;k+=2)pr.push(ps[k]+'–'+(ps[k+1]||'…'));const extra=r.c.type!=='normal'?TYPES[r.c.type]:'';return `<tr data-act="editday" data-date="${r.ds}" style="cursor:pointer"><td>${DOW[parseYmd(r.ds).getDay()]} ${r.ds.slice(8)}/${r.ds.slice(5,7)}</td><td>${r.c.n?(r.mode==='home'?'Home':'Presencial'):''}</td><td>${[extra,pr.join(', ')].filter(Boolean).join(' · ')}${r.c.adjust?` · ajuste ${fmtS(r.c.adjust)}`:''}</td><td class="r">${fmtHM(r.c.worked)}</td><td class="r ${cls(r.c.balance)}">${r.c.pending?'<span class="muted">parcial</span>':fmtS(r.c.balance)}</td></tr>`}).join('')||'<tr><td colspan="5" class="muted">Sem registros no período.</td></tr>'}
+  </table></div></section>`;
+}
+function csvFor(from,to){
+  const {rows,s}=buildReport(from,to);
+  const q=v=>{v=String(v??'');return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const lines=[['Data','Dia','Modalidade','Tipo','Marcações','Intervalo','Trabalhado','Previsto','Ajuste','Saldo','Observação'].join(';')];
+  rows.forEach(r=>{const ps=(r.rec&&r.rec.punches)||[];lines.push([fmtDate(r.ds),DOWL[parseYmd(r.ds).getDay()],r.c.n?(r.mode==='home'?'Home':'Presencial'):'',TYPES[r.c.type],ps.join(' '),r.c.n>=3?fmtHM(r.c.brk):'',fmtHM(r.c.worked),fmtHM(r.c.expected),r.c.adjust?fmtS(r.c.adjust).replace('−','-'):'',fmtS(r.c.balance).replace('−','-'),(r.rec&&r.rec.note)||''].map(q).join(';'))});
+  lines.push('');
+  lines.push(['Resumo',`${fmtDate(from)} a ${fmtDate(to)}`].join(';'));
+  [['Dias com registro',s.dias],['Presencial',s.pres],['Home',s.home],['Horas trabalhadas',fmtHM(s.worked)],['Horas previstas',fmtHM(s.expected)],['Horas extras',fmtS(s.extra)],['Horas a menos',fmtS(s.deb).replace('−','-')],['Saldo do período',fmtS(s.saldo).replace('−','-')],['Banco no início',fmtS(s.bankStart).replace('−','-')],['Banco ao final',fmtS(s.bankEnd).replace('−','-')]].forEach(a=>lines.push(a.map(q).join(';')));
+  return '﻿'+lines.join('\r\n');
+}
+function htmlReport(from,to){
+  const {rows,s}=buildReport(from,to);
+  const tr=rows.map(r=>{const ps=(r.rec&&r.rec.punches)||[];return `<tr><td>${fmtDate(r.ds)}</td><td>${DOW[parseYmd(r.ds).getDay()]}</td><td>${r.c.n?(r.mode==='home'?'Home':'Presencial'):''}</td><td>${r.c.type!=='normal'?TYPES[r.c.type]:''}</td><td>${esc(ps.join(' · '))}</td><td>${r.c.n>=3?fmtHM(r.c.brk):''}</td><td>${fmtHM(r.c.worked)}</td><td>${fmtS(r.c.balance)}</td><td>${esc((r.rec&&r.rec.note)||'')}</td></tr>`}).join('');
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório de ponto ${fmtDate(from)} a ${fmtDate(to)}</title><style>body{font:13px/1.4 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1c1c1a;margin:32px}h1{font-size:20px;margin:0 0 4px}p{color:#666;margin:0 0 18px}table{border-collapse:collapse;width:100%;margin-bottom:22px}td,th{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left;font-variant-numeric:tabular-nums}th{font-size:11px;text-transform:uppercase;color:#666}.sum td:last-child{text-align:right;font-weight:600}.sum{width:auto;min-width:320px}@media print{body{margin:12mm}}</style></head><body>
+  <h1>Relatório de ponto</h1><p>Período: ${fmtDate(from)} a ${fmtDate(to)} · Jornada ${fmtHM(S.settings.jornada)}/dia · Horário oficial ${esc(S.settings.entrada)}–${esc(S.settings.saida)} · Gerado em ${fmtDate(todayS())} ${nowHM()}</p>
+  <table class="sum"><tr><td>Dias com registro</td><td>${s.dias}</td></tr><tr><td>Presencial / Home</td><td>${s.pres} / ${s.home}</td></tr><tr><td>Horas trabalhadas</td><td>${fmtHM(s.worked)}</td></tr><tr><td>Horas previstas</td><td>${fmtHM(s.expected)}</td></tr><tr><td>Horas extras</td><td>${fmtS(s.extra)}</td></tr><tr><td>Horas a menos</td><td>${fmtS(s.deb)}</td></tr><tr><td>Saldo do período</td><td>${fmtS(s.saldo)}</td></tr><tr><td>Banco no início</td><td>${fmtS(s.bankStart)}</td></tr><tr><td>Banco ao final</td><td>${fmtS(s.bankEnd)}</td></tr></table>
+  <table><tr><th>Data</th><th>Dia</th><th>Local</th><th>Tipo</th><th>Marcações</th><th>Intervalo</th><th>Trabalhado</th><th>Saldo</th><th>Obs.</th></tr>${tr}</table></body></html>`;
+}
+async function saveFile(filename,data,mime){
+  if(!downloads){
+    try{
+      const blob=new Blob([data],{type:mime});
+      const file=new File([blob],filename,{type:mime});
+      if(navigator.canShare&&navigator.canShare({files:[file]})&&/Android|iPhone|iPad/i.test(navigator.userAgent)){
+        try{await navigator.share({files:[file],title:filename});return}catch(e){if(e&&e.name==='AbortError')return}
+      }
+      const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+      toast('Arquivo salvo em Downloads');
+    }catch(e){toast('Não foi possível baixar: '+((e&&e.message)||e))}
+    return;
+  }
+  try{await downloads.save({filename,data})}
+  catch(e){
+    try{await downloads.save({filename,data:new Blob([data],{type:mime})})}
+    catch(e2){if(e2&&/declin|cancel|abort/i.test(String(e2.code||e2.message)))return;toast('Não foi possível baixar: '+((e2&&e2.message)||e2))}
+  }
+}
+
+// ---------- Ajustes ----------
+function viewCfg(){
+  const st=S.settings;
+  const days=(name,arr)=>`<div class="checks">${[1,2,3,4,5,6,0].map(i=>`<label><input type="checkbox" name="${name}" value="${i}" ${arr.includes(i)?'checked':''}>${DOW[i]}</label>`).join('')}</div>`;
+  return `<section class="card" id="cfg">
+    <h3>Jornada</h3>
+    <div class="grid2">
+      <label class="f"><span>Horas por dia</span><input type="time" id="cJor" value="${fmtHM(st.jornada)}"></label>
+      <label class="f"><span>Intervalo mínimo (min)</span><input type="text" inputmode="numeric" id="cInt" value="${st.intervaloMin}"></label>
+      <label class="f"><span>Entrada oficial</span><input type="time" id="cEnt" value="${esc(st.entrada)}"></label>
+      <label class="f"><span>Saída oficial</span><input type="time" id="cSai" value="${esc(st.saida)}"></label>
+    </div>
+    <label class="f"><span>Dias de trabalho (contam ${fmtHM(st.jornada)} previstas)</span>${days('wd',st.workdays||[])}</label>
+    <label class="f"><span>Dias que normalmente são presenciais (o resto começa como Home — dá pra trocar no dia)</span>${days('pd',st.presDays||[])}</label>
+    <h3 class="mt">Banco de horas</h3>
+    <label class="f"><span>Saldo inicial (ex.: +3:30 ou -1:00)</span><input type="text" id="cIni" value="${st.saldoInicial?fmtS(st.saldoInicial).replace('−','-'):''}" placeholder="0:00"></label>
+    <button class="btn primary" data-act="savecfg" style="width:100%">Salvar ajustes</button>
+  </section>
+  <section class="card">
+    <h3>Backup</h3>
+    <p class="small muted" style="margin-top:0">Seus registros ficam salvos neste celular. Baixe um backup de vez em quando (e antes de trocar de aparelho ou limpar os dados do Chrome).</p>
+    <div class="row" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn sm" data-act="backup">Baixar backup</button><label class="btn sm" style="display:inline-block">Restaurar backup<input type="file" id="restore" accept=".json,application/json" hidden></label></div>
+  </section>`;
+}
+
+// ---------- toast ----------
+let toastT=null;
+function toast(msg,actLabel,actFn){
+  const r=$('#toastRoot');clearTimeout(toastT);
+  r.innerHTML=`<div class="toast"><span>${esc(msg)}</span>${actLabel?`<button id="toastAct">${esc(actLabel)}</button>`:''}</div>`;
+  if(actLabel)$('#toastAct').onclick=()=>{r.innerHTML='';actFn()};
+  toastT=setTimeout(()=>{r.innerHTML=''},actLabel?6000:3500);
+}
+
+// ---------- events ----------
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act;
+  if(a==='closebg'){if(e.target===el){edit=null;renderModal()}return}
+  if(a==='punch'){
+    const t=todayS(),hm=nowHM();
+    updateDay(t,r=>{if(!r.mode)r.mode=modeOf(t);r.punches.push(hm)});
+    const n=S.days[t].punches.length;
+    toast(`${punchLabel(n-1,n>=3?4:n)} registrada às ${hm}`,'Desfazer',()=>updateDay(t,r=>{if(r.punches[r.punches.length-1]===hm)r.punches.pop()}));
+  }
+  else if(a==='mode'){const d=el.dataset.date;updateDay(d,r=>{r.mode=el.dataset.mode})}
+  else if(a==='editday'){openDay(el.dataset.date)}
+  else if(a==='month'){S.month=el.dataset.m;render()}
+  else if(a==='close'){edit=null;renderModal()}
+  else if(a==='emode'){readModal();edit.mode=el.dataset.mode;renderModal()}
+  else if(a==='addp'){readModal();const last=edit.punches[edit.punches.length-1];edit.punches.push(edit.date===todayS()?nowHM():(last||S.settings.entrada));renderModal()}
+  else if(a==='fillstd'){readModal();const e0=toMin(S.settings.entrada),e1=toMin(S.settings.saida);const mid=Math.round((e0+e1)/2/5)*5;edit.punches=[S.settings.entrada,fromMin(mid),fromMin(mid+S.settings.intervaloMin),S.settings.saida];renderModal()}
+  else if(a==='rmp'){readModal();edit.punches.splice(+el.dataset.i,1);renderModal()}
+  else if(a==='clear'){
+    if(!edit.confirmClear){readModal();edit.confirmClear=true;renderModal();return}
+    const d=edit.date;delete S.days[d];persistDay(d);edit=null;renderModal();render();toast('Dia apagado');
+  }
+  else if(a==='saveday'){
+    readModal();
+    const adj=parseSigned($('#eAdj').value);
+    if(adj===null){toast('Ajuste inválido. Use algo como -2:00 ou +0:30');return}
+    const ps=edit.punches.filter(p=>toMin(p)!=null).sort((x,y)=>toMin(x)-toMin(y));
+    const d=edit.date,ed=edit;
+    updateDay(d,r=>{r.punches=ps;r.mode=ed.mode;r.type=ed.type;r.note=ed.note.trim();r.adjust=adj;if(!r.note)delete r.note;if(!r.adjust)delete r.adjust;if(r.type==='normal')delete r.type});
+    edit=null;renderModal();toast('Dia salvo');
+  }
+  else if(a==='preset'){S.rep.preset=el.dataset.p;render()}
+  else if(a==='dlcsv'){saveFile(`ponto_${S.rep.from}_a_${S.rep.to}.csv`,csvFor(S.rep.from,S.rep.to),'text/csv')}
+  else if(a==='dlhtml'){saveFile(`relatorio-ponto_${S.rep.from}_a_${S.rep.to}.html`,htmlReport(S.rep.from,S.rep.to),'text/html')}
+  else if(a==='copy'){
+    const {s}=buildReport(S.rep.from,S.rep.to);
+    const txt=`Ponto ${fmtDate(S.rep.from)} a ${fmtDate(S.rep.to)}\nDias com registro: ${s.dias} (${s.pres} presencial, ${s.home} home)\nTrabalhadas: ${fmtHM(s.worked)} de ${fmtHM(s.expected)} previstas\nExtras: ${fmtS(s.extra)} · A menos: ${fmtS(s.deb)}\nSaldo do período: ${fmtS(s.saldo)}\nBanco de horas ao final: ${fmtS(s.bankEnd)}`;
+    navigator.clipboard.writeText(txt).then(()=>toast('Resumo copiado'),()=>toast('Não foi possível copiar'));
+  }
+  else if(a==='savecfg'){
+    const jor=toMin($('#cJor').value),iv=parseInt($('#cInt').value,10),ini=parseSigned($('#cIni').value);
+    if(!jor){toast('Informe as horas por dia');return}
+    if(isNaN(iv)||iv<0){toast('Intervalo mínimo inválido');return}
+    if(ini===null){toast('Saldo inicial inválido');return}
+    const get=n=>[...document.querySelectorAll(`input[name=${n}]:checked`)].map(x=>+x.value);
+    S.settings={...S.settings,jornada:jor,intervaloMin:iv,entrada:$('#cEnt').value||'09:00',saida:$('#cSai').value||'15:15',workdays:get('wd'),presDays:get('pd'),saldoInicial:ini};
+    persistSettings();document.activeElement&&document.activeElement.blur();$('#main').innerHTML=viewCfg();toast('Ajustes salvos');
+  }
+  else if(a==='backup'){saveFile(`backup-ponto_${todayS()}.json`,JSON.stringify({app:'meu-ponto',v:1,settings:S.settings,days:S.days},null,1),'application/json')}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='rFrom'||e.target.id==='rTo'){
+    let f=$('#rFrom').value,t=$('#rTo').value;if(!f||!t)return;if(f>t)[f,t]=[t,f];
+    S.rep.preset='custom';S.rep.from=f;S.rep.to=t;render();
+  }
+  if(e.target.id==='restore'){
+    const file=e.target.files[0];if(!file)return;
+    file.text().then(async txt=>{
+      const j=JSON.parse(txt);if(!j||j.app!=='meu-ponto'||!j.days)throw new Error('arquivo inválido');
+      S.settings={...DEF,...j.settings};persistSettings();
+      for(const d of Object.keys(j.days)){S.days[d]=j.days[d];persistDay(d)}
+      render();toast(`Backup restaurado (${Object.keys(j.days).length} dias)`);
+    }).catch(err=>toast('Não foi possível restaurar: '+err.message));
+  }
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&edit){edit=null;renderModal()}});
+setInterval(tick,1000);
+init();
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.store){lastDay=todayS();render()}});
+})();
+</script>
+</body>
+</html>
